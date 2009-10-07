@@ -115,9 +115,6 @@ int debugOutput(const char *format, ...)
 	return pspDebugScreenPrintData(buffer, bufsz);
 }
 
-//IMPORANT !!!!!! READ READ READ !!!!!!
-#define DEV_MODE //Comment out upon release!!! DO NOT FORGET
-
 int main(int argc, char *argv[])
 {
 	SetupCallbacks();
@@ -138,11 +135,7 @@ int main(int argc, char *argv[])
 		chdir(path); // set base path luaplayer/				
 		getDeltaTime(); //For FPS
 
-		#ifdef DEV_MODE
-		const char *errMsg = runScript("debug/index.lua", false);
-		#else
 		const char *errMsg = runScript("index.lua", false);
-		#endif
 		
 		if (errMsg != NULL);
 		{

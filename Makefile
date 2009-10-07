@@ -56,3 +56,5 @@ PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
 
 src/main.o: src/boot.c
+
+#mv $(TARGET).prx debug/$(TARGET)
