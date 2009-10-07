@@ -6,7 +6,7 @@ PSP_EBOOT_PIC1 = resources/PIC1.png
 LUA_OBJS = 			src/luaPlayer.o src/utility.o \
 					src/luaControls.o src/luaGraphics.o src/luaSound.o \
 					src/lua3d.o src/luaTimer.o src/luaSystem.o src/luaWlan.o \
-					src/luaAdhoc.o src/luaTileMap.o
+					src/luaAdhoc.o
 				
 ADHOC_OBJS = 		src/libs/adhoc/adhoc.o
 			

@@ -51,7 +51,6 @@
 
 #include "libs/graphics/graphics.h"
 #include "libs/intraFont/intraFont.h"
-#include "libs/tileEngine/map.h"
 
 static const void* theScreen;
 static Image theScreenImage;
