@@ -29,8 +29,8 @@ while not Controls.readPeek():start() do
 	--Clear the screen
 	screen:clear()
 	
-	--Blit our uber cool background to the screen (with variable alpha)
-	screen:blit(0, 0, backGround, alpha)
+	--Blit our uber cool background to the screen
+	screen:blit(0, 0, backGround)
 		
 	--Print some controls using IntraFont	
 	IntraFont.print(font, 20, 120, 0.5, IntraCol.white, IntraCol.black, "now playing : sample.at3")
