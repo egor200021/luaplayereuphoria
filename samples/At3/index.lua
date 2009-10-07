@@ -31,6 +31,15 @@ while not Controls.readPeek():start() do
 	
 	--Blit our uber cool background to the screen
 	screen:blit(0, 0, backGround)
+	
+	--Set Mp3 Volume (on channel 0)
+	At3.volume(volume, 0) --Must be called inside a loop if you wish to change its value
+	
+	--Set Mp3 Playback Speed (on channel 0)
+	At3.speed(speed, 0) --Must be called inside a loop if you wish to change its value
+	
+	--Play the At3, can be called inside or outside a loop
+	At3.play(true, 0)
 		
 	--Print some controls using IntraFont	
 	IntraFont.print(font, 20, 120, 0.5, IntraCol.white, IntraCol.black, "now playing : sample.at3")
