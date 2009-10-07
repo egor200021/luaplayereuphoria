@@ -16,8 +16,6 @@ AUDIO_OBJS = 		src/libs/aalib/pspaalib.o src/libs/aalib/pspaalibwav.o \
 			
 GRAPHICS_OBJS = 	src/libs/vram/vram.o \
 					src/libs/graphics/graphics.o src/libs/graphics/framebuffer.o
-					
-TILEMAP_OBJS =      src/libs/tileEngine/map.o src/libs/tileEngine/collision.o
 				
 INTRAFONT_OBJS = 	src/libs/intraFont/libccc.o src/libs/intraFont/intraFont.o \
 					src/pspDveManager.o

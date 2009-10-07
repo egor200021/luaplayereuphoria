@@ -97,7 +97,6 @@ void luaSystem_init(lua_State *L);
 void luaWlan_init(lua_State *L);
 void luaMath_init(lua_State *L);
 void luaAdhoc_init(lua_State *L);
-void luaTileMap_init(lua_State *L);
 
 void stackDump (lua_State *L);
 

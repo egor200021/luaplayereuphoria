@@ -287,55 +287,6 @@ static const luaL_reg Font_functions[] = {
 
 UserdataStubs(Image, Image*)
 
-//Load a TileMap
-static int lua_TileMapLoad(lua_State *L)
-{
-	unsigned int sizeX = luaL_checkint(L, 1);
-	unsigned int sizeY = luaL_checkint(L, 2);
-	const char *layer1 = luaL_checkstring(L, 3);
-	const char *layer2 = luaL_checkstring(L, 4);
-	const char *layer3 = luaL_checkstring(L, 5);
-	
-	loadMap(sizeX, sizeY, layer1, layer2, layer3);
-	
-	return 0;
-}
-
-//Blit a TileMap
-static int lua_TileMapBlit(lua_State *L)
-{
-	unsigned int tilesAcross = luaL_checkint(L, 1);
-	Image* tileSheet = *toImage(L, 2);
-	Image* backGround = *toImage(L, 3);
-	
-	drawMap(tilesAcross, tileSheet, backGround);
-	
-	return 0;
-}
-
-//TileMap Collision
-static int lua_TileMapCollision(lua_State *L)
-{
-	//unsigned int tilesAcross = luaL_checkint(L, 1);
-	
-	centerEntityOnMap(0, 0);
-	checkToMap(0, 0, 0, 0, 16, 16, 0, 0, 400, 400);
-	return 0;
-}
-
-static const luaL_reg TileMapFunctions[] = {
-	{"load", 			lua_TileMapLoad},
-	{"blit",			lua_TileMapBlit},
-	{"collision",		lua_TileMapCollision},
-	{0, 0}
-};
-
-
-void luaTileMap_init(lua_State *L)
-{
-	luaL_openlib(L, "tileMap", TileMapFunctions, 0);
-}
-
 //Create an Empty Image
 static int lua_ImageCreateEmpty(lua_State *L)
 {
