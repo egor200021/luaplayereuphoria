@@ -40,13 +40,7 @@ while not Controls.readPeek():start() do
 	screen:blit(0, 0, backGround)
 		
 	--Print some controls using IntraFont	
-	IntraFont.print(font, 20, 120, 0.5, IntraCol.white, IntraCol.black, "now playing : sample.mp3")
-	IntraFont.print(font, 20, 150, 0.5, IntraCol.white, IntraCol.black, "press x to pause/unpause")
-	IntraFont.print(font, 20, 170, 0.5, IntraCol.white, IntraCol.black, "tap l to decrease the volume")
-	IntraFont.print(font, 20, 190, 0.5, IntraCol.white, IntraCol.black, "tap r to increase the volume")
-	IntraFont.print(font, 20, 210, 0.5, IntraCol.white, IntraCol.black, "tap square to decrease the playback speed")
-	IntraFont.print(font, 20, 230, 0.5, IntraCol.white, IntraCol.black, "tap circle to increase the playback speed")
-	IntraFont.print(font, 20, 250, 0.5, IntraCol.white, IntraCol.black, "press start to quit")
+	IntraFont.print(font, 20, 120, 0.5, IntraCol.white, IntraCol.black, "now playing : sample.Mp3\n\npress x to pause/unpause\n\ntap l to decrease the volume\n\ntap r to increase the volume\n\ntap square to decrease the playback speed\n\ntap circle to increase the playback speed\n\npress start to quit")
 	
 	--Pause/Unpause the Mp3
 	if pad:cross() and pad:cross() ~= oldpad:cross() then
