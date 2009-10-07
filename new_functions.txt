@@ -38,31 +38,8 @@ IntraFont.load(font) -- Loads a Pgf font from a file.
 IntraFont.print(font, x, y, textSize, foreGround color, backGround color, text) -- Print text to the screen using IntraFont.
 
 ---VFPU MATH---
-Vfpu.srand(no) - Set vfpu random generator seed.
-Vfpu.randFloat(min, max) - Return random float value.
-Vfpu.randColor(min, max) - Return random color value in 8888 format.
-Vfpu.floor(no) - Returns an integer no greater than or no less than the given value.
-Vfpu.ceil(no) - Returns an integer no greater than or no less than the given value.
-Vfpu.abs(no) - Return the absolute, or non-negative value, of a given value.
-Vfpu.sqrt(no) - Calculates the square root.
-Vfpu.fmin(x, y) - Calculate minimum numeric value.
-Vfpu.fmax(x, y) - Calculate maximum numeric value.
-Vfpu.sin(no) - Calculate cosine.
-Vfpu.cos(no) - Calculate tangent.
-Vfpu.tan(no) - Calculate inverse sine (arcsin).
-Vfpu.asin(no) - Calculate inverse cosine (arccos).
-Vfpu.acos(no) - Calculate inverse tangent (arctan).
-Vfpu.atan(no) - Calculate inverse tangent, with proper quadrant fixup.
-Vfpu.atan2(x, y) - Calculate hyperbolic sine.
-Vfpu.sin(no) - Calculate hyperbolic sine.
-Vfpu.cosh(no) - Calculate hyperbolic cosine.
-Vfpu.tanh(no) - Calculate hyperbolic tangent.
-Vfpu.sincos(no) - Calculate sine and cosine.
-Vfpu.exp(no) - Calculate exponent of no.
-Vfpu.log(no) - Calculate logarithm of no.
-Vfpu.pow(x, y) - Calculate x raised to the power of y.
-Vfpu.fmod(x, y) - Calculate floating point remainder of x/y.
-Vfpu.inout(time) - Perform a smooth acceleration/deceleration curve based on the input time value.
+
+Now linked to the default lua math functions. (makes more sense)
 
 ----AUDIO-----
 Supported formats : Mp3, At3, Ogg & Wav. All formats (except Wav) playback using the PSP Media Engine.
