@@ -5,7 +5,7 @@
 IntraCol = {black = 0, red = 1, blue = 2, white = 3, lightGrey = 4, grey = 5, darkGrey = 6, purple = 7, yellow  = 8, orange = 9, transparent = 10}
 
 --Load our background Image
-backGround = Image.load("debug/bk.png")
+backGround = Image.load("bk.png")
 
 --Load a Font using IntraFont
 font = IntraFont.load("font.pgf")
