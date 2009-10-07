@@ -116,7 +116,7 @@ int debugOutput(const char *format, ...)
 }
 
 //IMPORANT !!!!!! READ READ READ !!!!!!
-//#define DEV_MODE //Comment out upon release!!! DO NOT FORGET
+#define DEV_MODE //Comment out upon release!!! DO NOT FORGET
 
 int main(int argc, char *argv[])
 {
