@@ -1,0 +1,18 @@
+-- LuaPlayer Euphoria V7 By Zack --
+-- If you find a bug with LuaPlayer Euphoria, Please submit to the official forums : http://www.retroemu.com/forum/forumdisplay.php?f=148 or on the google code page : http://code.google.com/p/luaplayereuphoria/
+-- Based on LuaPlayer v0.20 by Shine --
+-- Official forums : http://www.retroemu.com/forum/forumdisplay.php?f=148
+
+[+] Ported project from C++ to C.
+[+] Implemented AAlib sound engine (Mp3, At3 & Ogg Playback On Media Engine + Wav support) and wrote a new sound core.
+[+] Added Swizzle & UnSwizzle functions (note : Images are Swizzled by default)
+[+] Added move Image to Vram function.
+[+] Added optional Alpha parameter to screen:blit(). (ie screen:blit(x, y, image, alpha) - Makes for easy image fading in/out
+[+] Added VFPU math library.
+[+] Added Sony Message Dialog System.
+[+] Added Sony OSK System.
+[*] Reworked IntraFont support.
+[+] Added option to free/delete Images from memory.
+[*] Huge code cleanup.
+[*] Vairous fixes that I cannot remember :p.
+[+] Source code now available.
