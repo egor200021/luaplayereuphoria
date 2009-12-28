@@ -650,6 +650,7 @@ void blitAlphaImageToScreen(int sx, int sy, int width, int height, Image* source
 	if (!initialized) return;
 	
 	sceGuColor((alpha << 24) | 0xFFFFFF);
+	sceGuTexMode(GU_PSM_8888, 0, 0, source->swizzled);
    	sceGuTexFunc(GU_TFX_MODULATE, GU_TCC_RGBA);
 	sceGuTexImage(0, source->textureWidth, source->textureHeight, source->textureWidth, (void*) source->data);
 	float u = 1.0f / ((float)source->textureWidth);
@@ -720,8 +721,7 @@ void slowClearScreen(Color color)
 	sceGuClearColor(color);
 	sceGuClearDepth(0);
 	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-	sceGuFinish();
-	sceGuSync(0, 0);
+	guEnd();
 }
 
 void fillImageRect(Color color, int x0, int y0, int width, int height, Image* image)
@@ -1006,8 +1006,7 @@ void initGraphics()
 	sceGuAmbientColor(0xffffffff);
 	sceGuEnable(GU_BLEND);
 	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
-	sceGuFinish();
-	sceGuSync(0, 0);
+	guEnd();
 
 	sceDisplayWaitVblankStart();
 	sceGuDisplay(GU_TRUE);
@@ -1019,7 +1018,23 @@ void disableGraphics()
 	initialized = 0;
 }
 
+int gu_start = 0;
+
 void guStart()
 {
-	sceGuStart(GU_DIRECT, list);
+	if (!gu_start)
+	{	
+		gu_start = 1;
+		sceGuStart(GU_DIRECT, list);
+	}
+}
+
+void guEnd()
+{
+	if (gu_start)
+	{	
+		gu_start = 0;
+		sceGuFinish();
+		sceGuSync(0, 0);
+	}
 }

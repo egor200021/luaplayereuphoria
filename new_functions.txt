@@ -5,37 +5,30 @@
 
 ---SCREEN---
 
-screen:blit(x, y, image, [alpha], [source x], [source y], [width], [height]) - Added optional alpha level variable.
-- usage is optional when just using (screen:blit(x, y, image), but when using sourcex/y you must set the alpha value.
-- The reason it's there is so you can easilly fade images in/out.
+screen:blit(x, y, image, [alpha], [source x], [source y], [width], [height]) -- Added optional alpha level variable.
+-- usage is optional when just using (screen:blit(x, y, image), but when using sourcex/y you must set the alpha value.
+-- The reason it's there is so you can easilly fade images in/out.
 screen:slowClear() -- If your having problems with the screen not clearing correctly and cannot fix it, I suggest you use this. (Note : It is slower than using the standard screen:clear() so only use if there is no alternative)
 
 ---IMAGE---
-Image.free(Image) - free an image.
-Image.swizzle(Image) - Swizzle an Image (only after unswizzling! as images are auto swizzled by default).
-Image.unSwizzle(Image) - UnSwizzle an Image.
-Image.toVram(Image) - Move an image to Vram (only moves it to vram if there is enough space available).
+Image.free(Image) -- free an image.
+Image.swizzle(Image) -- Swizzle an Image (only after unswizzling! as images are auto swizzled by default).
+Image.unSwizzle(Image) -- UnSwizzle an Image.
+Image.toVram(Image) -- Move an image to Vram (only moves it to vram if there is enough space available).
 
 ---SYSTEM---
 
-System.draw() -- Start the GU (MUST BE CALLED BEFORE ANY GRAPHICS BLITTING)
-System.endDraw() -- End the GU (MUST BE CALLED AT THE END OF ANY GRAPHICS BLITTING)
-
-
-System.setCpuSpeed(number) -- Set the Cpu speed. Options : 100, 222, 266, 333.
-System.showFPS() -- Show the current FPS.
-System.quit() -- Exit back to the XMB.
-System.dialog(message, yes/no) - Shows the Sony message dialog. yes/no = options
-System.osk(description, initalText) - Shows the Sony OSK.
+-- functions
+System.draw() 													-- Start the GU (MUST BE CALLED BEFORE ANY GRAPHICS BLITTING)
+System.endDraw() 												-- End the GU (MUST BE CALLED AT THE END OF ANY GRAPHICS BLITTING)
+System.setCpuSpeed(number) 										-- Set the Cpu speed. Options : 100, 222, 266, 333.
+System.showFPS() 												-- Show the current FPS.
+System.quit() 													-- Exit back to the XMB.
 
 ---Controls---
 
 Controls.ReadPeek() -- Same as Controls.Read() except it doesn't cap the Framerate to 60FPS
 
----IntraFont---
-
-IntraFont.load(font) -- Loads a Pgf font from a file.
-IntraFont.print(font, x, y, textSize, foreGround color, backGround color, text) -- Print text to the screen using IntraFont.
 
 ---VFPU MATH---
 
@@ -60,8 +53,8 @@ Mp3.stop(channel) -- Stops a currently playing Mp3 file.
 Mp3.pause(channel) -- Pauses a currently playing Mp3 file.
 Mp3.unload(channel) -- Unloads/deletes a currently playing Mp3 file.
 Mp3.volume(volume, channel) -- Set the volume of the currently playing Mp3 file (float) - 1.0 = max volume | 0.0 = mute.
-Mp3.speed(speed, channel) - Set the playback speed of the currently playing Mp3 file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
-Mp3.endOfStream(speed, channel) - Returns true upon the Mp3 file reaching the end of its stream (Mp3 finishing).
+Mp3.speed(speed, channel) -- Set the playback speed of the currently playing Mp3 file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
+Mp3.endOfStream(speed, channel) -- Returns true upon the Mp3 file reaching the end of its stream (Mp3 finishing).
 
 -At3 Functions -
 
@@ -71,8 +64,8 @@ At3.stop(channel) -- Stops a currently playing At3 file.
 At3.pause(channel) -- Pauses a currently playing At3 file.
 At3.unload(channel) -- Unloads/deletes a currently playing At3 file.
 At3.volume(volume, channel) -- Set the volume of the currently playing At3 file (float) - 1.0 = max volume | 0.0 = mute.
-At3.speed(speed, channel) - Set the playback speed of the currently playing At3 file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
-At3.endOfStream(speed, channel) - Returns true upon the At3 file reaching the end of its stream (At3 finishing).
+At3.speed(speed, channel) -- Set the playback speed of the currently playing At3 file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
+At3.endOfStream(speed, channel) -- Returns true upon the At3 file reaching the end of its stream (At3 finishing).
 
 -Ogg Functions -
 
@@ -82,8 +75,8 @@ Ogg.stop(channel) -- Stops a currently playing Ogg file.
 Ogg.pause(channel) -- Pauses a currently playing Ogg file.
 Ogg.unload(channel) -- Unloads/deletes a currently playing Ogg file.
 Ogg.volume(volume, channel) -- Set the volume of the currently playing Ogg file (float) - 1.0 = max volume | 0.0 = mute.
-Ogg.speed(speed, channel) - Set the playback speed of the currently playing Ogg file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
-Ogg.endOfStream(speed, channel) - Returns true upon the Ogg file reaching the end of its stream (Ogg finishing).
+Ogg.speed(speed, channel) -- Set the playback speed of the currently playing Ogg file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
+Ogg.endOfStream(speed, channel) -- Returns true upon the Ogg file reaching the end of its stream (Ogg finishing).
 
 -Wav Functions -
 
@@ -93,8 +86,8 @@ Wav.stop(channel) -- Stops a currently playing Wav file.
 Wav.pause(channel) -- Pauses a currently playing Wav file.
 Wav.unload(channel) -- Unloads/deletes a currently playing Wav file.
 Wav.volume(volume, channel) -- Set the volume of the currently playing Wav file (float) - 1.0 = max volume | 0.0 = mute.
-Wav.speed(speed, channel) - Set the playback speed of the currently playing Wav file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
-Wav.endOfStream(speed, channel) - Returns true upon the Wav file reaching the end of its stream (Wav finishing).
+Wav.speed(speed, channel) -- Set the playback speed of the currently playing Wav file. - Speed : 1.0 = normal speed | 0.0 slowest speed.
+Wav.endOfStream(speed, channel) -- Returns true upon the Wav file reaching the end of its stream (Wav finishing).
 
 
 -------- Help -----------

@@ -34,7 +34,7 @@
 #define __LUAPLAYER_H
 
 #include <stdlib.h>
-#include <tdefs.h>
+//#include <tdefs.h> //Not needed for compilation via Ubuntu (complains it's missing)
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -88,6 +88,7 @@ int HANDLE##_register(lua_State *L) { \
 const char *runScript(const char* script, bool isStringBuffer);
 void luaC_collectgarbage (lua_State *L);
 
+void luaZip_init(lua_State *L);
 void luaSound_init(lua_State *L);
 void luaControls_init(lua_State *L);
 void luaGraphics_init(lua_State *L);

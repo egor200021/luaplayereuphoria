@@ -420,8 +420,7 @@ static int lua_EndGu(lua_State *L)
 	}
 	
 	sceGuTexMode(GU_PSM_8888,0,0,GU_TRUE);
-	sceGuFinish();
-	sceGuSync(0, 0);
+	guEnd();
 	return 0;
 }
 
@@ -569,48 +568,100 @@ static int lua_systemQuit(lua_State *L)
 static int lua_SCEShowMessageDialog(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	if (argc < 2) 
+	if (argc < 1 || argc > 3) return luaL_error(L, "System.msgDialog() takes 1, 2 or 3 arguments");
+	
+	
+	pspUtilityMsgDialogParams dialog;
+	
+	int opts = PSP_UTILITY_MSGDIALOG_OPTION_TEXT;
+	if (argc>1 && lua_toboolean(L, 2))
+		opts |= PSP_UTILITY_MSGDIALOG_OPTION_YESNO_BUTTONS;		
+		
+	dialog_create(&dialog, luaL_checkstring(L, 1), PSP_UTILITY_MSGDIALOG_MODE_TEXT, opts);
+
+    int draw=1;
+	while(draw) 
 	{
-		return luaL_error(L, "System.dialog(string, enable) takes two arguments (string, enable yes/no buttons - true/false)");
+		guStart();
+		
+		if (argc>=3 && lua_isfunction(L, 3))
+		{
+			lua_pushvalue(L, 3);   /* push drawfunc */
+			lua_call(L, 0, 0);     /* call it*/
+		}
+		else clearScreen(0xff554433);
+		
+		guEnd();
+
+		draw = dialog_update();		
+		
+		sceDisplayWaitVblankStart();	
+		flipScreen();
 	}
 	
-	const char *msg = luaL_checkstring(L, 1);
-	bool enable;
-	enable = lua_toboolean(L, 2);
-	
-	static int doOnce = 1; 	
-	if (doOnce) //Shitty hack to make the dialog box properly shutdown (you can also call it in the main loop using this shitty hack)
-	{
-		sceGuFinish();
-    	sceGuSync(0,0);
-		ShowMessageDialog(msg, enable);
-		doOnce = 0;
-	}
-	return 0;
+	lua_pushnumber(L, dialog.buttonPressed);
+
+	return 1;
 }
 
 //SCE Osk
 static int lua_SCEOsk(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	if (argc < 2) 
+	if (2 > argc || argc > 4) 
 	{
-		return luaL_error(L, "System.osk(description, intialText) takes two arguments");
+		return luaL_error(L, "System.osk(description, intialText [, inputType [, drawFunc]]) takes 2, 3 or 4 arguments");
 	}
 	
-	char *desc = luaL_checkstring(L, 1);
-	char *initial = luaL_checkstring(L, 2);
+	int inputtype = 0; // Allow all input types
 	
-	static int doOnce = 1; 	
-	if (doOnce) //Shitty hack to make the osk properly shutdown (you can also call it in the main loop using this shitty hack)
+	if (argc>=3) inputtype = luaL_checkint(L, 3);
+	
+	SceUtilityOskData data;
+	unsigned short* desc = memalign(16, sizeof(unsigned short)*strlen(luaL_checkstring(L, 1)));
+	char2UShort(luaL_checkstring(L, 1), desc);
+	unsigned short* intext = memalign(16, sizeof(unsigned short)*strlen(luaL_checkstring(L, 2)));
+	char2UShort(luaL_checkstring(L, 2), intext);
+	
+	
+	osk_create(&data, desc, intext, inputtype);
+	
+	int draw = 1;
+	while (draw)
 	{
-		sceGuFinish();
-    	sceGuSync(0,0);
-		//ShowErrorDialog(msg);
-		requestString(desc, initial);
-		doOnce = 0;
+		guStart();
+		
+		if (argc>=4 && lua_isfunction(L, 4))
+		{
+			lua_pushvalue(L, 4);   /* push drawfunc */
+			lua_call(L, 0, 0);     /* call it*/
+		}
+		else
+			clearScreen(0xff554433);
+			
+		guEnd();
+		
+		draw = osk_update();	
+		
+		sceDisplayWaitVblankStart();	
+		flipScreen();
 	}
-	return 0;
+	
+	char *outtext = (char*) memalign(16, data.outtextlength*sizeof(char)+1);
+	
+	int i;
+	for (i=0; i<data.outtextlength; ++i)
+		outtext[i] = data.outtext[i];
+	
+	lua_pushfstring(L, outtext);
+	lua_pushnumber(L, data.result);
+	
+	
+	free(outtext);
+	free(intext);
+	free(desc);
+	
+	return 2;
 }
 
 //Register our System Functions
@@ -620,7 +671,7 @@ static const luaL_reg System_functions[] = {
   {"setCpuSpeed", 					lua_setCpuSpeed},
   {"showFPS",						lua_showFPS},
   {"quit",                          lua_systemQuit},
-  {"dialog",						lua_SCEShowMessageDialog},
+  {"msgDialog",						lua_SCEShowMessageDialog},
   {"osk",							lua_SCEOsk},
   {"currentDirectory",              lua_curdir},
   {"listDirectory",           	    lua_dir},
@@ -648,4 +699,39 @@ static const luaL_reg System_functions[] = {
 
 void luaSystem_init(lua_State *L) {
 	luaL_openlib(L, "System", System_functions, 0);
+	
+#define PSP_UTILITY_CONSTANT(name)\
+	lua_pushstring(L, #name);\
+	lua_pushnumber(L, PSP_UTILITY_##name);\
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "System");
+	lua_gettable(L, LUA_GLOBALSINDEX);
+	
+	PSP_UTILITY_CONSTANT(MSGDIALOG_RESULT_UNKNOWN1);
+	PSP_UTILITY_CONSTANT(MSGDIALOG_RESULT_YES);
+	PSP_UTILITY_CONSTANT(MSGDIALOG_RESULT_NO);
+	PSP_UTILITY_CONSTANT(MSGDIALOG_RESULT_BACK);
+	
+	PSP_UTILITY_CONSTANT(OSK_RESULT_UNCHANGED);
+	PSP_UTILITY_CONSTANT(OSK_RESULT_CANCELLED);
+	PSP_UTILITY_CONSTANT(OSK_RESULT_CHANGED);
+	
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_ALL);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_LATIN_DIGIT);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_LATIN_SYMBOL);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_LATIN_LOWERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_LATIN_UPPERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_DIGIT);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_SYMBOL);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_LOWERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_UPPERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_HIRAGANA);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_HALF_KATAKANA);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_KATAKANA);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_JAPANESE_KANJI);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_RUSSIAN_LOWERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_RUSSIAN_UPPERCASE);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_KOREAN);
+	PSP_UTILITY_CONSTANT(OSK_INPUTTYPE_URL);
 }

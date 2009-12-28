@@ -32,7 +32,20 @@
  
 #ifndef OSK_H
 #define OSK_H
- 
-char *requestString(char *descStr, char *initialStr);
+
+#include <malloc.h>
+#include <pspkernel.h>
+#include <pspdisplay.h>
+#include <pspdebug.h>
+#include <pspgu.h>
+#include <string.h>
+#include <psputility.h>
+
+void char2UShort(const char* c, unsigned short* us);
+
+void osk_create(SceUtilityOskData *data, unsigned short* desc, unsigned short* intext, int inputtype);
+int osk_update();
+
+
  
 #endif

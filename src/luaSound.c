@@ -691,6 +691,14 @@ static int lua_WavGetEOS(lua_State *L)
 		return 0;
 	}
 }
+
+
+
+/*
+ *
+ ---------			MOD,XM,IT Functions			---------
+ *
+ */
 	
 //Register our Mp3 Functions
 static const luaL_reg MP3Functions[] = {

@@ -41,24 +41,29 @@
 
 #include "../graphics/graphics.h"
 #include "osk.h"
- 
- 
-int getOskText(char *input, unsigned short *intext, unsigned short *desc)
+
+void char2UShort(const char* c, unsigned short* us)
 {
-	int done = 0;
+	int i;
+	for (i=0; i<strlen(c); ++i)
+		us[i] = c[i];
+		
+	us[strlen(c)]=0;
+}
+ 
+void osk_create(SceUtilityOskData *data, unsigned short* desc, unsigned short* intext, int inputtype)
+{
 	unsigned short outtext[128] = { 0 };
-	
-	SceUtilityOskData data;
-	memset(&data, 0, sizeof(SceUtilityOskData));
-	data.language = PSP_UTILITY_OSK_LANGUAGE_DEFAULT; // Use system default for text input
-	data.lines = 1;
-	data.unk_24 = 1;
-	data.inputtype = PSP_UTILITY_OSK_INPUTTYPE_ALL; // Allow all input types
-	data.desc = desc;
-	data.intext = intext;
-	data.outtextlength = 128;
-	data.outtextlimit = 50; // Limit input to 50 characters
-	data.outtext = (unsigned short*)outtext;
+	memset(data, 0, sizeof(SceUtilityOskData));
+	data->language = PSP_UTILITY_OSK_LANGUAGE_DEFAULT;
+	data->lines = 1;
+	data->unk_24 = 1;
+	data->inputtype = inputtype;
+	data->desc = desc;
+	data->intext = intext;
+	data->outtextlength = 128;
+	data->outtextlimit = 64; // Limit input to 64 characters
+	data->outtext = outtext;
 		
 	SceUtilityOskParams params;
 	memset(&params, 0, sizeof(params));
@@ -70,68 +75,41 @@ int getOskText(char *input, unsigned short *intext, unsigned short *desc)
 	params.base.fontThread = 18;
 	params.base.soundThread = 16;
 	params.datacount = 1;
-	params.data = &data;
-
-	sceUtilityOskInitStart(&params);
-
-	while(!done)
-	{
-		guStart();
-		clearScreen(0xff554433);
-		sceGuFinish();
-    	sceGuSync(0,0);
-
-		switch(sceUtilityOskGetStatus())
-		{
-			case PSP_UTILITY_DIALOG_VISIBLE:
-	    		sceUtilityOskUpdate(1);
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_QUIT:
-	    		sceUtilityOskShutdownStart();
-	    		done = 1;
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_NONE:
-	    	return;
-		}
-		
-		int i, j;		
-		for(i = 0; data.outtext[i]; i++)
-			if (data.outtext[i]!='\0' && data.outtext[i]!='\n' && data.outtext[i]!='\r'){
-				input[j] = data.outtext[i];
-				j++;
-			}
-		input[j] = 0;
-		
-		sceDisplayWaitVblankStart();	
-		flipScreen();
-	}
-	sceUtilityOskShutdownStart();
+	params.data = data;
 	
-	return 0;
+	
+	sceUtilityOskInitStart(&params);
+	
+	return;
 }
 
-char *requestString(char *descStr, char *initialStr)
+int osk_update()
 {
-	
-	int ok, i;
-	static char str[64];
-	unsigned short intext[128]  = { 0 }; // text already in the edit box on start
-	unsigned short desc[128]  = { 0 };
-
-	if (initialStr[0] != 0)
-		for (i=0; i<=strlen(initialStr); i++)
-			intext[i] = (unsigned short)initialStr[i];
-
-	if (descStr[0] != 0)
-		for (i=0; i<=strlen(descStr); i++)
-			desc[i] = (unsigned short)descStr[i];
-
-	ok = getOskText(str, intext, desc);
-
-	if (ok)
-		return str;
-
+	switch(sceUtilityOskGetStatus())
+	{
+		case PSP_UTILITY_DIALOG_INIT:
+			break;
+		
+		case PSP_UTILITY_DIALOG_VISIBLE:
+			sceUtilityOskUpdate(1);
+			break;
+		
+		case PSP_UTILITY_DIALOG_QUIT:
+			sceUtilityOskShutdownStart();
+			break;
+		
+		case PSP_UTILITY_DIALOG_FINISHED:
+			break;
+			
+		case PSP_UTILITY_DIALOG_NONE:
+			return 0;
+			
+		default :
+			break;
+	}
+		
 	return 1;
 }
+
+
+

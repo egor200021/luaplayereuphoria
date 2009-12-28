@@ -30,22 +30,12 @@
  *
  */
  
-#include <pspkernel.h>
-#include <pspdisplay.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <pspmoduleinfo.h>
-#include <psputility.h>
-#include <pspgu.h>
-#include <pspgum.h>
+
 
 #include "../../include/luaplayer.h"
 #include "../graphics/graphics.h"
 #include "msgDialog.h"
 
-pspUtilityMsgDialogParams dialog;
 
 static void ConfigureDialog(pspUtilityMsgDialogParams *dialog, size_t dialog_size)
 {
@@ -63,82 +53,40 @@ static void ConfigureDialog(pspUtilityMsgDialogParams *dialog, size_t dialog_siz
     dialog->base.soundThread = 0x10;
 }
 
-int errDone = 0;
-
-void ShowErrorDialog(const char *message)
+void dialog_create(pspUtilityMsgDialogParams *dialog, const char* message, int mode, int opts)
 {
-	ConfigureDialog(&dialog, sizeof(dialog));
-    dialog.mode = PSP_UTILITY_MSGDIALOG_MODE_ERROR;
-	dialog.options = PSP_UTILITY_MSGDIALOG_OPTION_ERROR;
-    dialog.errorValue = PSP_UTILITY_MSGDIALOG_OPTION_TEXT;
-
-    strcpy(dialog.message, message);
-    sceUtilityMsgDialogInitStart(&dialog);
-
-   while(!errDone) 
-	{
-		guStart();
-		clearScreen(0xff554433);
-		sceGuFinish();
-    	sceGuSync(0,0);
-
-		switch(sceUtilityMsgDialogGetStatus()) 
-		{	    
-			case PSP_UTILITY_DIALOG_VISIBLE:
-	    		sceUtilityMsgDialogUpdate(1);
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_QUIT:
-	    		sceUtilityMsgDialogShutdownStart();
-	    		errDone = 1;
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_NONE:
-	    	return;
-	    }
-		sceDisplayWaitVblankStart();	
-		flipScreen();
-	}
-	sceUtilityMsgDialogShutdownStart();
+	ConfigureDialog(dialog, sizeof(pspUtilityMsgDialogParams));
+    dialog->mode = mode;
+	dialog->options = opts;
+	
+    strcpy(dialog->message, message);
+    sceUtilityMsgDialogInitStart(dialog);
 }
 
-int dDone = 0;
-
-void ShowMessageDialog(const char *message, unsigned int enableYesno)
+int dialog_update()
 {
-	ConfigureDialog(&dialog, sizeof(dialog));
-    dialog.mode = PSP_UTILITY_MSGDIALOG_MODE_TEXT;
-	dialog.options = PSP_UTILITY_MSGDIALOG_OPTION_TEXT;
-	
-	if(enableYesno)
-		dialog.options |= PSP_UTILITY_MSGDIALOG_OPTION_YESNO_BUTTONS|PSP_UTILITY_MSGDIALOG_OPTION_DEFAULT_NO;		
-	
-    strcpy(dialog.message, message);
-    sceUtilityMsgDialogInitStart(&dialog);
-           
-	while(!dDone) 
-	{
-		guStart();
-		clearScreen(0xff554433);
-		sceGuFinish();
-    	sceGuSync(0,0);
-
-		switch(sceUtilityMsgDialogGetStatus()) 
-		{	    
-			case PSP_UTILITY_DIALOG_VISIBLE:
-	    		sceUtilityMsgDialogUpdate(1);
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_QUIT:
-	    		sceUtilityMsgDialogShutdownStart();
-	    		dDone = 1;
-	    	break;
-	    
-			case PSP_UTILITY_DIALOG_NONE:
-	    	return;
-	    }
-		sceDisplayWaitVblankStart();	
-		flipScreen();
+	switch(sceUtilityMsgDialogGetStatus()) {		
+		case PSP_UTILITY_DIALOG_INIT:
+			break;
+		
+		case PSP_UTILITY_DIALOG_VISIBLE:
+			sceUtilityMsgDialogUpdate(1);
+			break;
+		
+		case PSP_UTILITY_DIALOG_QUIT:
+			sceUtilityMsgDialogShutdownStart();
+			break;
+		
+		case PSP_UTILITY_DIALOG_FINISHED:
+			break;
+			
+		case PSP_UTILITY_DIALOG_NONE:
+			return 0;
+			
+		default :
+			break;
 	}
-	sceUtilityMsgDialogShutdownStart();
+
+	return 1;
 }
+

@@ -75,8 +75,7 @@ int netDialog()
 	{
 		guStart();
 		clearScreen(0xff554433);
-		sceGuFinish();
-    	sceGuSync(0,0);
+		guEnd();
 
 		switch(sceUtilityNetconfGetStatus())
 		{
@@ -139,8 +138,6 @@ static int lua_NetPromptInit(lua_State *L)
 	static int doOnce = 1;
     if (doOnce)
     {
-    	//sceGuFinish();
-    	//sceGuSync(0,0);
     	sceUtilityLoadNetModule(PSP_NET_MODULE_COMMON);
 
 		sceUtilityLoadNetModule(PSP_NET_MODULE_INET);

@@ -434,5 +434,6 @@ Color* getVramDrawBuffer();
 Color* getVramDisplayBuffer();
 
 void guStart();
+void guEnd();
 
 #endif

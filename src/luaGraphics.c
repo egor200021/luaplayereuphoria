@@ -55,7 +55,7 @@
 static const void* theScreen;
 static Image theScreenImage;
 
-UserdataStubs(Color, Color)
+UserdataStubs(Color, Color);
 
 //Wait for Vsync
 static int lua_WaitVblankStart(lua_State *L)
@@ -88,6 +88,7 @@ static int lua_FlipScreen(lua_State *L)
 	return 0;
 }
 
+/* // old intraFont functions
 // Colors
 enum colors {
 	RED =	0xFF0000FF,
@@ -103,6 +104,7 @@ enum colors {
 	ORANGE = 0xFF0066FF,
 	TRANSPARENT = 0x7FFFFFFF,
 };
+
 
 intraFont *font;
 
@@ -283,8 +285,9 @@ static const luaL_reg Font_functions[] = {
 	{"unLoad", 		lua_IntraFontUnload},
 	{0,0}
 };
+*/
 
-UserdataStubs(Image, Image*)
+UserdataStubs(Image, Image*);
 
 //Create an Empty Image
 static int lua_ImageCreateEmpty(lua_State *L)
@@ -374,7 +377,10 @@ static int lua_ImageBlit(lua_State *L)
 	int width = rect? luaL_checkint(L, 7) : source->imageWidth;
 	int height = rect? luaL_checkint(L, 8) : source->imageHeight;
 	
-	blitAlphaImageToScreen(sx, sy, width, height, source, dx, dy, setAlpha);
+	if (dest)
+		blitAlphaImageToImage(sx, sy, width, height, source, dx, dy, dest);
+	else
+		blitAlphaImageToScreen(sx, sy, width, height, source, dx, dy, setAlpha);
 	
 	return 0;
 }
@@ -749,12 +755,458 @@ static const luaL_reg Image_methods[] = {
 };
 
 static const luaL_reg Image_meta[] = {
-	//{"__gc", lua_ImageFree},
 	{"__tostring", lua_ImageToString},
 	{0,0}
 };
 
 UserdataRegister(Image, Image_methods, Image_meta)
+
+/******************************************************************************
+ ** intraFont *******************************************************************
+ *******************************************************************************/
+ 
+UserdataStubs(IntraFont, intraFont*);
+
+// Init intraFont
+static int lua_intraFontInit(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 0) return luaL_error(L, "intraFont.init() takes no arguments");
+	
+	int ret = intraFontInit();
+	
+	lua_pushnumber(L, ret);
+	
+	return 0;
+}
+
+// Shutdown intraFont
+static int lua_intraFontShutdown(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 0) return luaL_error(L, "intraFont.shutdown() takes no arguments");
+	
+	intraFontShutdown();
+	
+	return 0;
+}
+
+// Load a pgf font
+static int lua_intraFontLoad(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 2) return luaL_error(L, "intraFont.load() takes 2 arguments");
+	
+	lua_gc(L, LUA_GCCOLLECT, 0);
+	int options = luaL_checkint(L, 2);
+	intraFont* ifont = intraFontLoad(luaL_checkstring(L, 1), options);
+	
+	if(!ifont) return luaL_error(L, "intraFont.load: Error loading font.");
+	intraFont** luaintraFont = pushIntraFont(L);
+	*luaintraFont = ifont;
+	
+	return 1;
+}
+
+// Free the specified font.
+static int lua_intraFontUnload(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 1) return luaL_error(L, "intraFont.unload() takes 0 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	
+	intraFontUnload(ifont);
+	
+	return 0;
+}
+
+// Activate the specified font
+static int lua_intraFontActivate(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 1) return luaL_error(L, "intraFont.activate() takes 0 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	
+	intraFontActivate(ifont);
+	
+	return 0;
+}
+
+// Set font style
+static int lua_intraFontSetStyle(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 5) return luaL_error(L, "intraFont.setStyle() takes 4 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float size = luaL_checknumber(L, 2);
+	Color color = *toColor(L, 3);
+	Color shadowColor = *toColor(L, 4);
+	int options = luaL_checkint(L, 5);
+	
+	intraFontSetStyle(ifont, size, color, shadowColor, options);
+	
+	return 0;
+}
+
+// Set type of string encoding to be used in intraFontPrint[f]
+static int lua_intraFontSetEncoding(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 2) return luaL_error(L, "intraFont.setEncoding() takes 1 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	int options = luaL_checkint(L, 2);
+	
+	intraFontSetEncoding(ifont, options);
+	
+	return 0;
+}
+
+// Set alternative font
+static int lua_intraFontSetAltFont(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 2) return luaL_error(L, "intraFont.setAltFont() takes 1 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	intraFont* alt_ifont = *toIntraFont(L, 2);
+	
+	intraFontSetAltFont(ifont, alt_ifont);
+	
+	return 0;
+}
+
+// Measure a length of text if it were to be drawn
+static int lua_intraFontMeasureText(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 2) return luaL_error(L, "intraFont.measureText() takes 1 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	
+	float ret = intraFontMeasureText(ifont, luaL_checkstring(L, 2));
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Measure a length of text if it were to be drawn
+static int lua_intraFontMeasureTextEx(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 3) return luaL_error(L, "intraFont.measureTextEx() takes 2 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	int len = luaL_checkint(L, 3);
+	
+	float ret = intraFontMeasureTextEx(ifont, luaL_checkstring(L, 2), len);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Measure a length of UCS-2 encoded text if it were to be drawn
+static int lua_intraFontMeasureTextUCS2(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 2) return luaL_error(L, "intraFont.measureTextUCS2() takes 1 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 2) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+
+	intraFont* ifont = *toIntraFont(L, 1);
+	
+	int n = luaL_getn(L, 2);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 2, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	float ret = intraFontMeasureTextUCS2(ifont, text);
+	
+	lua_pushnumber(L, ret);
+	
+	free(text);
+	
+	return 1;
+}
+
+// Measure a length of UCS-2 encoded text if it were to be drawn
+static int lua_intraFontMeasureTextUCS2Ex(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 3) return luaL_error(L, "intraFont.measureTextUCS2Ex() takes 2 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 2) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+
+	intraFont* ifont = *toIntraFont(L, 1);
+	int len = luaL_checkint(L, 3);
+	
+	int n = luaL_getn(L, 2);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 2, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	float ret = intraFontMeasureTextUCS2Ex(ifont, text, len);
+	
+	lua_pushnumber(L, ret);
+	
+	free(text);
+	
+	return 1;
+}
+
+// Draw text 
+static int lua_intraFontPrint(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 4) return luaL_error(L, "intraFont.print() takes 3 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	
+	float ret = intraFontPrint(ifont, x, y, luaL_checkstring(L, 4));
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw text 
+static int lua_intraFontPrintEx(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 5) return luaL_error(L, "intraFont.printEx() takes 4 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	int len = luaL_checkint(L, 5);
+	
+	float ret = intraFontPrintEx(ifont, x, y, luaL_checkstring(L, 4), len);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw text 
+static int lua_intraFontPrintColumn(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 5) return luaL_error(L, "intraFont.printColumn() takes 4 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	float w = luaL_checknumber(L, 4);
+	
+	float ret = intraFontPrintColumn(ifont, x, y, w, luaL_checkstring(L, 5));
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw text 
+static int lua_intraFontPrintColumnEx(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 6) return luaL_error(L, "intraFont.printColumnEx() takes 5 arguments, and it must be called from an instance with a colon.");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	float w = luaL_checknumber(L, 4);
+	int len = luaL_checkint(L, 6);
+	
+	float ret = intraFontPrintColumnEx(ifont, x, y, w, luaL_checkstring(L, 5), len);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw UCS-2 encoded text
+static int lua_intraFontPrintUCS2(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 4) return luaL_error(L, "intraFont.printUCS2() takes 3 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 4) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	
+	int n = luaL_getn(L, 4);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 4, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	
+	float ret = intraFontPrintUCS2(ifont, x, y, text);
+	
+	free(text);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw UCS-2 encoded text
+static int lua_intraFontPrintUCS2Ex(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 5) return luaL_error(L, "intraFont.printUCS2Ex() takes 4 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 4) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	int len = luaL_checkint(L, 5);
+	
+	int n = luaL_getn(L, 4);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 4, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	
+	float ret = intraFontPrintUCS2Ex(ifont, x, y, text, len);
+	
+	free(text);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw UCS-2 encoded text
+static int lua_intraFontPrintColumnUCS2(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 5) return luaL_error(L, "intraFont.printColumnUCS2() takes 4 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 5) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	float w = luaL_checknumber(L, 4);
+	
+	int n = luaL_getn(L, 5);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 5, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	float ret = intraFontPrintColumnUCS2(ifont, x, y, w, text);
+	
+	free(text);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+// Draw UCS-2 encoded text
+static int lua_intraFontPrintColumnUCS2Ex(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	if(argc != 6) return luaL_error(L, "intraFont.printColumnUCS2Ex() takes 5 arguments, and it must be called from an instance with a colon.");
+	if (lua_type(L, 5) != LUA_TTABLE) return luaL_error(L, "UCS-2 table missing");
+	
+	intraFont* ifont = *toIntraFont(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+	float w = luaL_checknumber(L, 4);
+	int len = luaL_checkint(L, 6);
+	
+	int n = luaL_getn(L, 5);
+	unsigned short *text = (unsigned short*)memalign(16, (n+1) * sizeof(unsigned short));
+	
+	int i;
+	for (i=0; i<n; i++)
+	{
+		lua_rawgeti(L, 5, i+1);
+		text[i] = (unsigned short)luaL_checknumber(L, -1);
+	}	
+	
+	text[n] = 0;
+	
+	float ret = intraFontPrintColumnUCS2Ex(ifont, x, y, w, text, len);
+	
+	free(text);
+	
+	lua_pushnumber(L, ret);
+	
+	return 1;
+}
+
+//Register our intraFont Functions
+static const luaL_reg intraFont_methods[] = {
+	// {"init",				lua_intraFontInit},	
+	// {"shutdown",			lua_intraFontShutdown},
+	{"load",				lua_intraFontLoad},
+	{"unload",				lua_intraFontUnload},
+	{"activate",			lua_intraFontActivate},
+	{"setStyle",			lua_intraFontSetStyle},
+	{"setEncoding",			lua_intraFontSetEncoding},
+	{"setAltFont",			lua_intraFontSetAltFont},
+	{"measureText",			lua_intraFontMeasureText},
+	{"measureTextEx",		lua_intraFontMeasureTextEx},
+	{"measureTextUCS2",		lua_intraFontMeasureTextUCS2},
+	{"measureTextUCS2Ex",	lua_intraFontMeasureTextUCS2Ex},
+	{"print",				lua_intraFontPrint},
+	{"printEx",				lua_intraFontPrintEx},
+	{"printColumn",			lua_intraFontPrintColumn},
+	{"printColumnEx",		lua_intraFontPrintColumnEx},
+	{"printUCS2",			lua_intraFontPrintUCS2},
+	{"printUCS2Ex",			lua_intraFontPrintUCS2Ex},
+	{"printColumnUCS2",		lua_intraFontPrintColumnUCS2},
+	{"printColumnUCS2Ex",	lua_intraFontPrintColumnUCS2Ex},
+	{0,0}
+};
+
+static const luaL_reg intraFont_meta[] = {
+	{0,0}
+};
+
+UserdataRegister(IntraFont, intraFont_methods, intraFont_meta);
 
 static int Color_new (lua_State *L) {
 	int argc = lua_gettop(L); 
@@ -836,10 +1288,11 @@ static const luaL_reg Screen_functions[] = {
 
 void luaGraphics_init(lua_State *L) {
 
+	IntraFont_register(L);
 	Image_register(L);
 	Color_register(L);
 	
-	luaL_openlib(L, "IntraFont", Font_functions, 0);
+	// luaL_openlib(L, "IntraFont", Font_functions, 0);
 	luaL_openlib(L, "screen", Screen_functions, 0);
 	luaL_openlib(L, "screen", Image_methods, 0); 	
 
@@ -848,4 +1301,43 @@ void luaGraphics_init(lua_State *L) {
 	theScreenImage.textureHeight = 512;
 	theScreenImage.imageWidth = 480;
 	theScreenImage.imageHeight = 272;
+	
+#define INTRAFONT_CONSTANT(name)\
+	lua_pushstring(L, #name);\
+	lua_pushnumber(L, INTRAFONT_##name);\
+	lua_settable(L, -3);
+	
+	lua_pushstring(L, "IntraFont");
+	lua_gettable(L, LUA_GLOBALSINDEX);
+	
+	INTRAFONT_CONSTANT(ADVANCE_H)
+	INTRAFONT_CONSTANT(ADVANCE_V)
+	INTRAFONT_CONSTANT(ALIGN_LEFT)
+	INTRAFONT_CONSTANT(ALIGN_RIGHT)
+	INTRAFONT_CONSTANT(ALIGN_CENTER)
+	INTRAFONT_CONSTANT(ALIGN_FULL)
+	INTRAFONT_CONSTANT(SCROLL_LEFT)
+	INTRAFONT_CONSTANT(SCROLL_SEESAW)
+	INTRAFONT_CONSTANT(SCROLL_RIGHT)
+	INTRAFONT_CONSTANT(SCROLL_THROUGH)
+	INTRAFONT_CONSTANT(WIDTH_VAR)
+	INTRAFONT_CONSTANT(WIDTH_FIX)
+	INTRAFONT_CONSTANT(ACTIVE)
+	INTRAFONT_CONSTANT(CACHE_MED)
+	INTRAFONT_CONSTANT(CACHE_LARGE)
+	INTRAFONT_CONSTANT(CACHE_ASCII)
+	INTRAFONT_CONSTANT(CACHE_ALL)
+	INTRAFONT_CONSTANT(STRING_ASCII)
+	INTRAFONT_CONSTANT(STRING_CP437)
+	INTRAFONT_CONSTANT(STRING_CP850)
+	INTRAFONT_CONSTANT(STRING_CP850)
+	INTRAFONT_CONSTANT(STRING_CP866)
+	INTRAFONT_CONSTANT(STRING_SJIS)
+	INTRAFONT_CONSTANT(STRING_GBK)
+	INTRAFONT_CONSTANT(STRING_KOR)
+	INTRAFONT_CONSTANT(STRING_BIG5)
+	INTRAFONT_CONSTANT(STRING_CP1251)
+	INTRAFONT_CONSTANT(STRING_CP1252)
+	INTRAFONT_CONSTANT(STRING_UTF8)
+	
 }

@@ -32,8 +32,19 @@
 #ifndef MSG_DIALOG
 #define MSG_DIALOG
 
-void ShowMessageDialog(const char *message, unsigned int enableYesno);
+#include <pspkernel.h>
+#include <pspdisplay.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <pspmoduleinfo.h>
+#include <psputility.h>
+#include <pspgu.h>
+#include <pspgum.h>
 
-void ShowErrorDialog(const char *message);
+
+void dialog_create(pspUtilityMsgDialogParams *dialog, const char* message, int mode, int opts);
+int dialog_update();
 
 #endif

@@ -292,8 +292,7 @@ static int lua_start3d(lua_State *L) {
 static int lua_end3d(lua_State *L) {
 	int argc = lua_gettop(L); 
 	if (argc != 0) return luaL_error(L, "wrong number of arguments"); 
-	sceGuFinish();
-	sceGuSync(0, 0);
+	guEnd();
 	sceGeRestoreContext(&geContext);
 	return 0;
 }

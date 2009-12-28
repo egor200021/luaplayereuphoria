@@ -49,6 +49,7 @@ const char *runScript(const char* script, bool isStringBuffer)
 	luaL_openlibs(L);
 	
 	// Modules
+	luaZip_init(L);
 	luaSound_init(L);
 	luaControls_init(L);
 	luaGraphics_init(L);
